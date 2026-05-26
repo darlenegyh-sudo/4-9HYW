@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏆 나만의 최애 운동 월드컵 🏆</title>
+
+    <style>
+        /* 배경색을 부드러운 하늘색으로 지정해요 */
+        body {
+            font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+            background-color: #e2e8f0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        /* 하얀색 메인 게임 상자 */
+        #game-container {
+            width: 90%;
+            max-width: 650px;
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        h1 {
+            color: #1e1b4b;
+            font-size: 2rem;
+            margin: 0 0 10px 0;
+        }
+
+        #round-title {
+            font-size: 1.2rem;
+            color: #ffffff;
+            font-weight: bold;
+            margin-bottom: 25px;
+            background: #4f46e5;
+            padding: 8px 25px;
+            border-radius: 50px;
+            display: inline-block;
+        }
+
+        /* 왼쪽, 오른쪽 카드를 나란히 배치 */
+        .match-box {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        /* 운동 선택 버튼 카드 */
+        .sport-card {
+            flex: 1;
+            background: #f1f5f9;
+            border: 3px solid #cbd5e1;
+            border-radius: 15px;
+            padding: 40px 10px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 마우스를 올렸을 때 테두리 색상 변경 */
+        #btn-left:hover { border-color: #4f46e5; background: #f8fafc; }
+        #btn-right:hover { border-color: #f43f5e; background: #f8fafc; }
+
+        /* 클릭했을 때 살짝 들어가는 효과 */
+        .sport-card:active {
+            background: #e2e8f0;
+        }
+
+        /* 커다란 이모티콘 */
+        .sport-icon {
+            font-size: 4rem;
+            margin-bottom: 10px;
+        }
+
+        /* 운동 이름 */
+        .sport-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #334155;
+        }
+
+        /* 가운데 VS 글자 구역 */
+        .vs-circle {
+            background: #334155;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        /* 우승자 결과창 (처음엔 숨겨둠) */
+        .winner-box {
+            display: none;
+        }
+
+        .winner-crown {
+            font-size: 3.5rem;
+            margin-bottom: 5px;
+        }
+
+        /* 다시하기 버튼 */
+        .restart-btn {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 12px 35px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 25px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <h1>🏆 최애 운동 월드컵 🏆</h1>
+        <div id="round-title">로딩 중...</div>
+
+        <div id="battle-area" class="match-box">
+            <div class="sport-card" id="btn-left">
+                <div class="sport-icon" id="left-icon">⚽</div>
+                <div class="sport-name" id="left-name">축구</div>
+            </div>
+
+            <div class="vs-circle">VS</div>
+
+            <div class="sport-card" id="btn-right">
+                <div class="sport-icon" id="right-icon">🏀</div>
+                <div class="sport-name" id="right-name">농구</div>
+            </div>
+        </div>
+
+        <div id="winner-area" class="winner-box">
+            <div class="winner-crown">👑</div>
+            <h2 style="font-size: 1.8rem; color: #1e1b4b; margin-bottom: 15px;">내 마음속 1등 운동!</h2>
+            <div class="sport-card" style="max-width: 250px; margin: 0 auto; cursor: default; border-color: #fbbf24; background: #fff;">
+                <div class="sport-icon" id="final-icon">🏆</div>
+                <div class="sport-name" id="final-name">우승 운동</div>
+            </div>
+            <button class="restart-btn" id="btn-restart">다시 시작하기</button>
+        </div>
+    </div>
+
+    <script>
+        // 운동 리스트 (테니스 포함 8가지)
+        const initialSports = [
+            { name: "축구", icon: "⚽" },
+            { name: "농구", icon: "🏀" },
+            { name: "야구", icon: "⚾" },
+            { name: "테니스", icon: "🎾" }, 
+            { name: "배드민턴", icon: "🏸" },
+            { name: "태권도", icon: "🥋" },
+            { name: "자전거", icon: "🚴" },
+            { name: "피구", icon: "🏐" }
+        ];
+
+        let currentSports = []; 
+        let nextRoundSports = []; 
+        let currentMatchIndex = 0; 
+        let roundName = ""; 
+
+        // 컴퓨터가 마우스 클릭을 다이렉트로 감시하는 특수 센서
+        document.getElementById('btn-left').addEventListener('click', function() {
+            selectSport(0);
+        });
+
+        document.getElementById('btn-right').addEventListener('click', function() {
+            selectSport(1);
+        });
+
+        document.getElementById('btn-restart').addEventListener('click', function() {
+            startGame();
+        });
+
+        // 게임을 처음부터 가동시키는 함수
+        function startGame() {
+            currentSports = [...initialSports].sort(() => Math.random() - 0.5);
+            nextRoundSports = [];
+            currentMatchIndex = 0;
+            
+            document.getElementById('battle-area').style.display = 'flex';
+            document.getElementById('winner-area').style.display = 'none';
+            
+            showMatch();
+        }
+
+        // 현재 매치를 글자와 아이콘으로 그려주기
+        function showMatch() {
+            if (currentSports.length === 8) roundName = "🔥 8강";
+            else if (currentSports.length === 4) roundName = "⚡ 준결승(4강)";
+            else if (currentSports.length === 2) roundName = "👑 결승전";
+
+            const matchNum = currentMatchIndex + 1;
+            const totalMatches = currentSports.length / 2;
+            document.getElementById('round-title').innerText = `${roundName} - ${matchNum} / ${totalMatches} 경기`;
+
+            const leftSport = currentSports[currentMatchIndex * 2];
+            const rightSport = currentSports[currentMatchIndex * 2 + 1];
+
+            document.getElementById('left-icon').innerText = leftSport.icon;
+            document.getElementById('left-name').innerText = leftSport.name;
+            document.getElementById('right-icon').innerText = rightSport.icon;
+            document.getElementById('right-name').innerText = rightSport.name;
+        }
+
+        // 카드 선택했을 때 작동하는 핵심 로직
+        function selectSport(index) {
+            const selected = currentSports[currentMatchIndex * 2 + index];
+            nextRoundSports.push(selected); 
+
+            currentMatchIndex++;
+
+            if (currentMatchIndex >= currentSports.length / 2) {
+                if (nextRoundSports.length === 1) {
+                    showWinner(nextRoundSports[0]);
+                } else {
+                    currentSports = nextRoundSports;
+                    nextRoundSports = [];
+                    currentMatchIndex = 0;
+                    showMatch();
+                }
+            } else {
+                showMatch();
+            }
+        }
+
+        // 최종 우승 결과 보여주기
+        function showWinner(winner) {
+            document.getElementById('battle-area').style.display = 'none';
+            document.getElementById('winner-area').style.display = 'block';
+            document.getElementById('round-title').innerText = "🏆 최애 운동 월드컵 종료! 🏆";
+            
+            document.getElementById('final-icon').innerText = winner.icon;
+            document.getElementById('final-name').innerText = winner.name;
+        }
+        
+        // 실행하자마자 게임 스타트!
+        startGame();
+    </script>
+</body>
+</html>
